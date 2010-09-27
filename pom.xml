@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	
+	<groupId>${groupId}</groupId>
+	<artifactId>${artifactId}</artifactId>
+	<version>${version}</version>
+	<packaging>jar</packaging>
+	
+	<name>NONAME Repos project</name>
+	<url>http://www.simonsoft.se/</url>
+	
+	<parent>
+		<groupId>se.repos</groupId>
+		<artifactId>maven-parent</artifactId>
+		<version>2.0</version>
+	</parent>
+	
+	<scm>
+		<developerConnection>
+			scm:svn:https://labs.repos.se/svn/${project.artifactId}/trunk
+		</developerConnection>
+		<tag>HEAD</tag>
+	</scm>
+
+	<issueManagement>
+		<system>Trac</system>
+		<url>https://labs.repos.se/trac/</url>
+	</issueManagement>
+		
+	<dependencies>
+	</dependencies>
+	
+</project>
