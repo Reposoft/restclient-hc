@@ -8,7 +8,7 @@
 	<packaging>jar</packaging>
 	
 	<name>NONAME Repos project</name>
-	<url>http://www.simonsoft.se/</url>
+	<url>http://www.repos.se/</url>
 	
 	<parent>
 		<groupId>se.repos</groupId>
