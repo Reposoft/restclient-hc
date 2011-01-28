@@ -4,7 +4,7 @@
 	
 	<groupId>se.repos</groupId>
 	<artifactId>restclient-hc</artifactId>
-	<version>1.0-SNAPSHOT</version>
+	<version>1.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	
 	<name>Repos REST-client HttpComponents impl</name>
@@ -32,17 +32,17 @@
 		<dependency>
 		    <groupId>se.repos</groupId>
 		    <artifactId>restclient</artifactId>
-		    <version>1.0-SNAPSHOT</version>
+		    <version>1.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 		    <groupId>org.apache.httpcomponents</groupId>
 		    <artifactId>httpclient</artifactId>
-		    <version>4.1-alpha2</version>
+		    <version>4.1</version>
 		</dependency>
 		<dependency>
 		    <groupId>org.eclipse.jetty</groupId>
 		    <artifactId>example-jetty-embedded</artifactId>
-		    <version>8.0.0.M2</version>
+		    <version>7.2.2.v20101205</version>
 		    <scope>test</scope>
 		</dependency>
 	</dependencies>
