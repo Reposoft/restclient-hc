@@ -1,38 +1,60 @@
 package se.repos.restclient.hc;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 
 import org.apache.http.HttpResponse;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
-import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import se.repos.restclient.HttpStatusError;
 import se.repos.restclient.ResponseHeaders;
+import se.repos.restclient.RestAuthentication;
 import se.repos.restclient.RestClient;
 import se.repos.restclient.RestResponse;
-import se.repos.restclient.RestResponseBean;
+import se.repos.restclient.base.RestClientMultiHostBase;
 
-public class RestClientHc implements RestClient {
+/**
+ * Still experimental RestClient implementation using Apache HTTP Components.
+ * Configures a new client for every request.
+ */
+public class RestClientHc extends RestClientMultiHostBase implements RestClient {
 
+	private final Logger logger = LoggerFactory.getLogger(this.getClass().getName());
+	
+	private RestAuthentication auth;
+
+	public RestClientHc(String serverRootUrl, RestAuthentication auth) {
+		super(serverRootUrl);
+		this.auth = auth;
+		logger.info("RestClient configured with root url {} and authentication {}", serverRootUrl, auth);
+	}
+	
 	@Override
-	public void get(String uri, RestResponse response) throws IOException,
+	public void get(URL url, RestResponse response) throws IOException,
 			HttpStatusError {
-        HttpClient httpclient = new DefaultHttpClient();
-        HttpGet httpget = new HttpGet(uri); 
+        DefaultHttpClient httpclient = new DefaultHttpClient();
+        configureAuthPreemptive(httpclient);
+        HttpGet httpget = new HttpGet(toUri(url));
         ResponseHandler<Integer> responseHandler = new HcRestResponseWrapper(response);
         int status = httpclient.execute(httpget, responseHandler);
         httpclient.getConnectionManager().shutdown(); 
 	}
 
 	@Override
-	public ResponseHeaders head(String uri) throws IOException {
-		HttpClient httpclient = new DefaultHttpClient();
-		HttpHead httphead = new HttpHead(uri);
+	public ResponseHeaders head(URL url) throws IOException {
+		DefaultHttpClient httpclient = new DefaultHttpClient();
+		configureAuthPreemptive(httpclient);
+		HttpHead httphead = new HttpHead(toUri(url));
 		
         ResponseHeaders head = httpclient.execute(httphead, new ResponseHandler<ResponseHeaders>() {
     		@Override
@@ -45,4 +67,28 @@ public class RestClientHc implements RestClient {
         return head;
 	}
 
+	/**
+	 * http://hc.apache.org/httpcomponents-client-ga/tutorial/html/authentication.html#d4e1023
+	 */
+	private void configureAuthPreemptive(DefaultHttpClient httpclient) {
+		if (this.auth == null) {
+			return;
+		}
+		httpclient.getCredentialsProvider().setCredentials(
+			AuthScope.ANY, // TODO restrict to host from constructor 
+			new UsernamePasswordCredentials(
+					auth.getUsername(null, null, null), 
+					auth.getPassword(null, null, null, null)));
+	}
+
+	private URI toUri(URL url) {
+		try {
+			return url.toURI();
+		} catch (URISyntaxException e) {
+			// this is probably not possible if the serverRootUrl to constructor
+			//  is valid, so the constructor might need validation
+			throw new RuntimeException("Rest client got invalid URL: " + url, e);
+		}
+	}
+	
 }

@@ -4,7 +4,7 @@
 	
 	<groupId>se.repos</groupId>
 	<artifactId>restclient-hc</artifactId>
-	<version>1.1</version>
+	<version>1.2-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	
 	<name>Repos REST-client HttpComponents impl</name>
@@ -32,7 +32,7 @@
 		<dependency>
 		    <groupId>se.repos</groupId>
 		    <artifactId>restclient</artifactId>
-		    <version>1.1-SNAPSHOT</version>
+		    <version>1.2-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 		    <groupId>org.apache.httpcomponents</groupId>
