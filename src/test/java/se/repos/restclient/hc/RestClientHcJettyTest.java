@@ -94,6 +94,8 @@ public class RestClientHcJettyTest {
 		RestClient client = new RestClientHc("http://localhost:49999", null);
 		ResponseHeaders head = client.head("/start");
 		assertEquals("should return the status code, not follow the redirect", 302, head.getStatus());
+		
+		server.stop();
 	}
 	
 	@Test
