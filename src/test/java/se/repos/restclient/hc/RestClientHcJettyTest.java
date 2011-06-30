@@ -3,6 +3,7 @@ package se.repos.restclient.hc;
 import static org.junit.Assert.*;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -18,12 +19,17 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
+
 import se.repos.restclient.ResponseHeaders;
 import se.repos.restclient.RestAuthentication;
+import se.repos.restclient.RestClient;
 import se.repos.restclient.RestGetClient;
 import se.repos.restclient.RestHeadClient;
 import se.repos.restclient.RestResponseBean;
 import se.repos.restclient.auth.RestAuthenticationSimple;
+import se.repos.restclient.server.UnitHttpServer;
 
 public class RestClientHcJettyTest {
 
@@ -65,6 +71,29 @@ public class RestClientHcJettyTest {
 		assertEquals("26", head.get("Content-Length").get(0));
 		
 		server.stop();		
+	}
+
+	@Test
+	public void testHeadRedirect() throws Exception {
+		Server server = new Server(49999); // TOOD random port retry like UnitHttpServer
+		server.setHandler(new HelloHandler("repos", "restclient") {
+			@Override
+			public void handle(String target, Request baseRequest,
+					HttpServletRequest request, HttpServletResponse response)
+					throws IOException, ServletException {
+				if ("/start".equals(request.getPathInfo().toString())) {
+					response.sendRedirect("/start/");
+					return;
+				}
+				super.handle(target, baseRequest, request, response);
+			}
+		});
+		server.setStopAtShutdown(true);
+		server.start();
+		
+		RestClient client = new RestClientHc("http://localhost:49999", null);
+		ResponseHeaders head = client.head("/start");
+		assertEquals("should return the status code, not follow the redirect", 302, head.getStatus());
 	}
 	
 	@Test

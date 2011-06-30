@@ -12,6 +12,7 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
+import org.apache.http.client.params.HttpClientParams;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,6 +54,7 @@ public class RestClientHc extends RestClientMultiHostBase implements RestClient 
 	@Override
 	public ResponseHeaders head(URL url) throws IOException {
 		DefaultHttpClient httpclient = new DefaultHttpClient();
+		HttpClientParams.setRedirecting(httpclient.getParams(), false);
 		configureAuthPreemptive(httpclient);
 		HttpHead httphead = new HttpHead(toUri(url));
 		
