@@ -7,7 +7,6 @@ import java.util.Set;
 
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
-import org.apache.http.StatusLine;
 
 import se.repos.restclient.base.ResponseHeadersReadOnly;
 

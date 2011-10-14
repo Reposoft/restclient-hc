@@ -1,35 +1,54 @@
 package se.repos.restclient.hc;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.Locale;
 
-import org.apache.http.Header;
-import org.apache.http.HeaderIterator;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.ProtocolVersion;
-import org.apache.http.StatusLine;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.ResponseHandler;
-import org.apache.http.params.HttpParams;
 
 import se.repos.restclient.ResponseHeaders;
 import se.repos.restclient.RestResponse;
-import se.repos.restclient.base.RestResponseWrapper;
 
-public class HcRestResponseWrapper extends RestResponseWrapper implements
-		ResponseHandler<Integer> {
+public class HcRestResponseWrapper implements ResponseHandler<Integer> {
+
+	private RestResponse response;
+	private HcResponseHeaders headers;
+	private String errorBody;
 
 	protected HcRestResponseWrapper(RestResponse restclientResponse) {
-		super(restclientResponse);
+		this.response = restclientResponse;
 	}
 
 	@Override
-	public Integer handleResponse(HttpResponse response)
+	public Integer handleResponse(HttpResponse httpResponse)
 			throws ClientProtocolException, IOException {
-		ResponseHeaders headers = new HcResponseHeaders(response);
-		response.getEntity().writeTo(this.getResponseStream(headers));
-		return response.getStatusLine().getStatusCode();
+		int status = httpResponse.getStatusLine().getStatusCode();
+		this.headers = new HcResponseHeaders(httpResponse);
+		HttpEntity entity = httpResponse.getEntity();
+		if (status == 200) {
+			entity.writeTo(response.getResponseStream(headers));
+		} else {
+			ByteArrayOutputStream out = new ByteArrayOutputStream();
+			entity.writeTo(out);
+			this.errorBody = out.toString();
+		}
+		return status;
 	}
-
+	
+	/**
+	 * @return for use from client to create status error instance
+	 */
+	ResponseHeaders getErrorHeaders() {
+		return headers;
+	}
+	
+	/**
+	 * @return for use from client to create status error instance
+	 */
+	String getErrorBody() {
+		return errorBody;
+	}
+	
 }

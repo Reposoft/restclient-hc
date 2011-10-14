@@ -45,10 +45,15 @@ public class RestClientHc extends RestClientMultiHostBase implements RestClient 
 			HttpStatusError {
         DefaultHttpClient httpclient = new DefaultHttpClient();
         configureAuthPreemptive(httpclient);
-        HttpGet httpget = new HttpGet(toUri(url));
-        ResponseHandler<Integer> responseHandler = new HcRestResponseWrapper(response);
+        URI uri = toUri(url);
+        HttpGet httpget = new HttpGet(uri);
+        HcRestResponseWrapper responseHandler = new HcRestResponseWrapper(response);
         int status = httpclient.execute(httpget, responseHandler);
-        httpclient.getConnectionManager().shutdown(); 
+        httpclient.getConnectionManager().shutdown();
+        if (status != 200) {
+        	throw new HttpStatusError(uri.toURL(), 
+        			responseHandler.getErrorHeaders(), responseHandler.getErrorBody());
+        }
 	}
 
 	@Override

@@ -3,11 +3,11 @@ package se.repos.restclient.hc;
 import static org.junit.Assert.*;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
 import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -15,21 +15,21 @@ import org.apache.commons.codec.binary.Base64;
 import org.eclipse.jetty.embedded.HelloHandler;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
-
+import se.repos.restclient.HttpStatusError;
 import se.repos.restclient.ResponseHeaders;
 import se.repos.restclient.RestAuthentication;
 import se.repos.restclient.RestClient;
 import se.repos.restclient.RestGetClient;
 import se.repos.restclient.RestHeadClient;
+import se.repos.restclient.RestResponse;
 import se.repos.restclient.RestResponseBean;
 import se.repos.restclient.auth.RestAuthenticationSimple;
-import se.repos.restclient.server.UnitHttpServer;
 
 public class RestClientHcJettyTest {
 
@@ -142,5 +142,44 @@ public class RestClientHcJettyTest {
 		
 		server.stop();
 	}
+	
+	// Generic client API compliance test, same as in RestClientJavaJettyTest
+	@Test
+	public void testGet401() throws Exception {
+		int port = 49999; // TODO random test port
+        Server server = new Server(port);
+ 
+        ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
+        context.setContextPath("/");
+        server.setHandler(context);
+        
+        context.addServlet(new ServletHolder(new HttpServlet() {
+			private static final long serialVersionUID = 1L;
+			@Override
+			protected void doGet(HttpServletRequest req, HttpServletResponse resp) 
+					throws ServletException, IOException {
+				resp.sendError(401, "Can this be custom?");
+			}
+		}), "/*");
+        
+        server.start();
+        
+        try {
+        	RestResponse resp = new RestResponseBean();
+        	new RestClientHc("http://localhost:" + port, null).get("/", resp);
+        	fail("Expected status error");
+        } catch (HttpStatusError e) {
+        	assertEquals(401, e.getHttpStatus());
+        	ResponseHeaders headers = e.getHeaders();
+        	assertNotNull("Should contain HTTP headers sent", headers);
+        	assertTrue(headers.size() > 0);
+        	assertTrue(e.getResponse().contains("Can this be custom?")); // assuming jetty writes an error page body
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			throw new RuntimeException("Error not handled", e);
+		} finally {
+        	server.stop();
+        }
+	}	
 
 }
