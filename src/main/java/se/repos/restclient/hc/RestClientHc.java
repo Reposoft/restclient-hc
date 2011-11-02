@@ -6,6 +6,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthScope;
@@ -37,7 +38,9 @@ public class RestClientHc extends RestClientMultiHostBase implements RestClient 
 	private RestAuthentication auth;
 
 	@Inject
-	public RestClientHc(String serverRootUrl, RestAuthentication auth) {
+	public RestClientHc(
+			@Named("config:se.repos.restclient.serverRootUrl") String serverRootUrl, 
+			RestAuthentication auth) {
 		super(serverRootUrl);
 		this.auth = auth;
 		logger.info("RestClient configured with root url {} and authentication {}", serverRootUrl, auth);
