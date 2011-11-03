@@ -25,13 +25,13 @@ import se.repos.restclient.ResponseHeaders;
 import se.repos.restclient.RestAuthentication;
 import se.repos.restclient.RestClient;
 import se.repos.restclient.RestResponse;
-import se.repos.restclient.base.RestClientMultiHostBase;
+import se.repos.restclient.base.RestClientUrlBase;
 
 /**
  * Still experimental RestClient implementation using Apache HTTP Components.
  * Configures a new client for every request.
  */
-public class RestClientHc extends RestClientMultiHostBase implements RestClient {
+public class RestClientHc extends RestClientUrlBase implements RestClient {
 
 	private final Logger logger = LoggerFactory.getLogger(this.getClass().getName());
 	
@@ -57,7 +57,7 @@ public class RestClientHc extends RestClientMultiHostBase implements RestClient 
         int status = httpclient.execute(httpget, responseHandler);
         httpclient.getConnectionManager().shutdown();
         if (status != 200) {
-        	throw new HttpStatusError(uri.toURL(), 
+        	throw new HttpStatusError(uri.toString(), 
         			responseHandler.getErrorHeaders(), responseHandler.getErrorBody());
         }
 	}
