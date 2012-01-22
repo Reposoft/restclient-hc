@@ -26,6 +26,23 @@
 		<system>Trac</system>
 		<url>https://labs.repos.se/trac/</url>
 	</issueManagement>
+	
+	<repositories>
+		<repository>
+			<id>repos.open.repo</id>
+			<name>Repos Open Repository</name>
+			<url>http://reposserver.sourceforge.net/repo/</url>
+		</repository>
+	</repositories>
+
+	<distributionManagement>
+		<repository>
+			<!-- http://reposserver.sourceforge.net/repo/ -->
+			<id>repos.open.repo</id>
+			<name>Repos Open Repository</name>
+			<url>scp://web.sourceforge.net/home/project-web/r/re/reposserver/htdocs/repo</url>
+		</repository>
+	</distributionManagement>
 		
 	<dependencies>
 		<dependency>
