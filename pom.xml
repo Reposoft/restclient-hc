@@ -31,16 +31,16 @@
 		<repository>
 			<id>repos.open.repo</id>
 			<name>Repos Open Repository</name>
-			<url>http://reposserver.sourceforge.net/repo/</url>
+			<url>http://reposserver.sourceforge.net/maven/</url>
 		</repository>
 	</repositories>
 
 	<distributionManagement>
 		<repository>
-			<!-- http://reposserver.sourceforge.net/repo/ -->
+			<!-- http://reposserver.sourceforge.net/maven/ -->
 			<id>repos.open.repo</id>
 			<name>Repos Open Repository</name>
-			<url>scp://web.sourceforge.net/home/project-web/r/re/reposserver/htdocs/repo</url>
+			<url>sftp://web.sourceforge.net/home/project-web/r/re/reposserver/htdocs/maven</url>
 		</repository>
 	</distributionManagement>
 		
@@ -48,7 +48,7 @@
 		<dependency>
 		    <groupId>se.repos</groupId>
 		    <artifactId>restclient</artifactId>
-		    <version>1.2.1</version>
+		    <version>1.3</version>
 		</dependency>
 		<dependency>
 		    <groupId>org.apache.httpcomponents</groupId>
