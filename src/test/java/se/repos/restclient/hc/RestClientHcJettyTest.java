@@ -1,6 +1,7 @@
 package se.repos.restclient.hc;
 
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 import java.io.IOException;
 import java.util.LinkedList;
@@ -180,6 +181,66 @@ public class RestClientHcJettyTest {
 		} finally {
         	server.stop();
         }
-	}	
+	}
+	
+	@Test
+	public void testAuthMultiThreaded() throws Exception {
+		
+		Server server = new Server(49999); // TOOD random port retry like UnitHttpServer
+		
+		final List<String> authHeaders = new LinkedList<String>();
+		server.setHandler(new HelloHandler("repos", "restclient") {
+			@Override
+			public void handle(String target, Request baseRequest,
+					HttpServletRequest request, HttpServletResponse response)
+					throws IOException, ServletException {
+				// TODO currently testing preemtive auth,
+				//  but client should not send auth unless prompted
+				String authHeader = request.getHeader("Authorization");
+				if (authHeader == null) {
+					response.addHeader("WWW-Authenticate", "Basic realm=\"test\"");
+					response.sendError(401);
+					return;
+				}
+				authHeaders.add(authHeader);				
+				super.handle(target, baseRequest, request, response);
+			}
+		});
+		
+		RestAuthentication auth = mock(RestAuthentication.class);
+		when(auth.getUsername(anyString(), anyString(), anyString()))
+			.thenReturn("user1").thenReturn("user2").thenReturn(null).thenReturn("user3");
+		when(auth.getPassword(anyString(), anyString(), anyString(), anyString()))
+			.thenReturn("pass1").thenReturn("pass2").thenReturn(null).thenReturn("pass3");
+
+		server.start();
+		try {
+			RestGetClient get = new RestClientHc("http://localhost:49999", auth);
+			get.get("/", new RestResponseBean());
+			get.get("/", new RestResponseBean());
+			try {
+				get.get("/", new RestResponseBean());
+				fail("Second request should have been without credentials");
+			} catch (HttpStatusError e) {
+				assertEquals(401, e.getHeaders().getStatus());
+			} catch (Exception e) {
+				e.printStackTrace();
+				System.out.println("SHOULD FAIL, THE ABOVE IS A BUG");
+			}
+			get.get("/", new RestResponseBean());
+		} finally {
+			server.stop();
+		}
+		
+		assertTrue(authHeaders.size() > 2);
+		assertEquals("Should get credentials from authentication service",
+				"Basic " + Base64.encodeBase64String("user1:pass1".getBytes()).trim(), authHeaders.get(0));
+		assertEquals("Should get fresh credentials from authentication service",
+				"Basic " + Base64.encodeBase64String("user2:pass2".getBytes()).trim(), authHeaders.get(1));
+		assertTrue("Should not attempt authentication when getUsername returns null",
+				authHeaders.size() == 3);
+		assertEquals("Should get credentials after no auth",
+				"Basic " + Base64.encodeBase64String("user3:pass3".getBytes()).trim(), authHeaders.get(2));
+	}
 
 }
