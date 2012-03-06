@@ -123,7 +123,23 @@ public class RestClientHcJettyTest {
 		server.setStopAtShutdown(true);
 		server.start();
 		
-		RestAuthentication auth = new RestAuthenticationSimple("user", "pwd");
+		RestAuthentication auth = new RestAuthenticationSimple("user", "pwd") {
+			@Override
+			public String getUsername(String root, String resource, String realm) {
+				assertEquals("Should provide root with http", "http://localhost:49999", root);
+				assertEquals("Resource can be null", null, resource);
+				assertEquals("Should provide the realm", "test", realm);
+				return super.getUsername(root, resource, realm);
+			}
+			@Override
+			public String getPassword(String root, String resource,
+					String realm, String username) {
+				assertEquals("Should provide root with http", "http://localhost:49999", root);
+				assertEquals("Should provide the realm", "test", realm);
+				assertEquals("Should provide the username", "user", username);
+				return super.getPassword(root, resource, realm, username);
+			}
+		};
 		
 		RestHeadClient client = new RestClientHc("http://localhost:49999", auth);
 		ResponseHeaders head = client.head("/");
@@ -198,7 +214,7 @@ public class RestClientHcJettyTest {
 				//  but client should not send auth unless prompted
 				String authHeader = request.getHeader("Authorization");
 				if (authHeader == null) {
-					response.addHeader("WWW-Authenticate", "Basic realm=\"test\"");
+					response.addHeader("WWW-Authenticate", "Basic realm=\"testMulti\"");
 					response.sendError(401);
 					return;
 				}
@@ -208,10 +224,13 @@ public class RestClientHcJettyTest {
 		});
 		
 		RestAuthentication auth = mock(RestAuthentication.class);
-		when(auth.getUsername(anyString(), anyString(), anyString()))
+		when(auth.getUsername(anyString(), anyString(), eq("testMulti")))
 			.thenReturn("user1").thenReturn("user2").thenReturn(null).thenReturn("user3");
-		when(auth.getPassword(anyString(), anyString(), anyString(), anyString()))
-			.thenReturn("pass1").thenReturn("pass2")/*not called:.thenReturn(null)*/.thenReturn("pass3");
+		when(auth.getPassword(anyString(), anyString(), eq("testMulti"), eq("user1"))).thenReturn("pass1");
+		when(auth.getPassword(anyString(), anyString(), eq("testMulti"), eq("user2"))).thenReturn("pass2");
+		when(auth.getPassword(anyString(), anyString(), eq("testMulti"), eq("user3"))).thenReturn("pass3");
+		when(auth.getPassword(anyString(), anyString(), anyString(), (String) isNull()))
+			.thenThrow(new AssertionError("null user means don't authenticate"));
 
 		server.start();
 		try {
