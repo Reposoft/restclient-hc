@@ -50,7 +50,8 @@ public class RestClientHc extends RestClientUrlBase implements RestClient {
 	public void get(URL url, RestResponse response) throws IOException,
 			HttpStatusError {
         DefaultHttpClient httpclient = new DefaultHttpClient();
-        configureAuthPreemptive(httpclient);
+        //configureAuthPreemptive(httpclient);
+        configureAuthOnDemand(httpclient);
         URI uri = toUri(url);
         HttpGet httpget = new HttpGet(uri);
         HcRestResponseWrapper responseHandler = new HcRestResponseWrapper(response);
@@ -66,7 +67,8 @@ public class RestClientHc extends RestClientUrlBase implements RestClient {
 	public ResponseHeaders head(URL url) throws IOException {
 		DefaultHttpClient httpclient = new DefaultHttpClient();
 		HttpClientParams.setRedirecting(httpclient.getParams(), false);
-		configureAuthPreemptive(httpclient);
+		//configureAuthPreemptive(httpclient);
+		configureAuthOnDemand(httpclient);
 		HttpHead httphead = new HttpHead(toUri(url));
 		
         ResponseHeaders head = httpclient.execute(httphead, new ResponseHandler<ResponseHeaders>() {
@@ -80,10 +82,12 @@ public class RestClientHc extends RestClientUrlBase implements RestClient {
         return head;
 	}
 
+
 	/**
 	 * http://hc.apache.org/httpcomponents-client-ga/tutorial/html/authentication.html#d4e1023
 	 */
 	private void configureAuthPreemptive(DefaultHttpClient httpclient) {
+		if (true) throw new UnsupportedOperationException(); // 
 		if (this.auth == null) {
 			return;
 		}
@@ -94,6 +98,10 @@ public class RestClientHc extends RestClientUrlBase implements RestClient {
 					auth.getPassword(null, null, null, null)));
 	}
 
+	private void configureAuthOnDemand(DefaultHttpClient httpclient) {
+		httpclient.setCredentialsProvider(new OnDemandCredentialsProvider(auth));
+	}
+	
 	private URI toUri(URL url) {
 		try {
 			return url.toURI();

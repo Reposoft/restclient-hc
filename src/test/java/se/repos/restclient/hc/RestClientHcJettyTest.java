@@ -211,7 +211,7 @@ public class RestClientHcJettyTest {
 		when(auth.getUsername(anyString(), anyString(), anyString()))
 			.thenReturn("user1").thenReturn("user2").thenReturn(null).thenReturn("user3");
 		when(auth.getPassword(anyString(), anyString(), anyString(), anyString()))
-			.thenReturn("pass1").thenReturn("pass2").thenReturn(null).thenReturn("pass3");
+			.thenReturn("pass1").thenReturn("pass2")/*not called:.thenReturn(null)*/.thenReturn("pass3");
 
 		server.start();
 		try {
@@ -224,8 +224,7 @@ public class RestClientHcJettyTest {
 			} catch (HttpStatusError e) {
 				assertEquals(401, e.getHeaders().getStatus());
 			} catch (Exception e) {
-				e.printStackTrace();
-				System.out.println("SHOULD FAIL, THE ABOVE IS A BUG");
+				fail("Should still allow requests that don't attempt preemptive authentication, got " + e);
 			}
 			get.get("/", new RestResponseBean());
 		} finally {
