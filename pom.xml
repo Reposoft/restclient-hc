@@ -12,7 +12,7 @@
 	<parent>
 		<groupId>se.repos</groupId>
 		<artifactId>maven-parent</artifactId>
-		<version>2.3</version>
+		<version>2.7</version>
 	</parent>
 
 	<scm>
@@ -25,19 +25,11 @@
 	<repositories>
 		<repository>
 			<id>repos.open.repo</id>
-			<name>Repos Open Repository</name>
-			<url>http://reposserver.sourceforge.net/maven/</url>
+			<name>Simonsoft / Repos Open Repository</name>
+			<url>http://opensource.simonsoft.se/maven/</url>
 		</repository>
 	</repositories>
 
-	<distributionManagement>
-		<repository>
-			<!-- http://reposserver.sourceforge.net/maven/ -->
-			<id>repos.open.repo</id>
-			<name>Repos Open Repository</name>
-			<url>sftp://web.sourceforge.net/home/project-web/r/re/reposserver/htdocs/maven</url>
-		</repository>
-	</distributionManagement>
 
 	<dependencies>
 		<dependency>
