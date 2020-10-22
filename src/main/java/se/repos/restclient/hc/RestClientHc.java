@@ -25,8 +25,6 @@ import javax.inject.Named;
 
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
-import org.apache.http.ProtocolException;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.RedirectStrategy;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
