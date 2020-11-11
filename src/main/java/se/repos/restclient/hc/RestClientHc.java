@@ -23,13 +23,16 @@ import java.net.URL;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.RedirectStrategy;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
-import org.apache.http.client.params.HttpClientParams;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.protocol.HttpContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,37 +63,40 @@ public class RestClientHc extends RestClientUrlBase implements RestClient {
 	}
 	
 	@Override
-	public void get(URL url, RestResponse response) throws IOException,
-			HttpStatusError {
-        DefaultHttpClient httpclient = new DefaultHttpClient();
-        httpclient.setCredentialsProvider(new OnDemandCredentialsProvider(auth));
-        URI uri = toUri(url);
-        HttpGet httpget = new HttpGet(uri);
-        HcRestResponseWrapper responseHandler = new HcRestResponseWrapper(response);
-        int status = httpclient.execute(httpget, responseHandler);
-        httpclient.getConnectionManager().shutdown();
-        if (status != 200) {
-        	throw new HttpStatusError(uri.toString(), 
-        			responseHandler.getErrorHeaders(), responseHandler.getErrorBody());
-        }
+	public void get(URL url, RestResponse response) throws IOException {
+		try (CloseableHttpClient httpclient = HttpClientBuilder.create()
+				.setDefaultCredentialsProvider(new OnDemandCredentialsProvider(auth))
+				.build()) {
+			URI uri = toUri(url);
+			HttpGet httpget = new HttpGet(uri);
+			HcRestResponseWrapper responseHandler = new HcRestResponseWrapper(response);
+			int status = httpclient.execute(httpget, responseHandler);
+			if (status != 200) {
+				throw new HttpStatusError(uri.toString(),
+						responseHandler.getErrorHeaders(), responseHandler.getErrorBody());
+			}
+		}
 	}
 
 	@Override
 	public ResponseHeaders head(URL url) throws IOException {
-		DefaultHttpClient httpclient = new DefaultHttpClient();
-		HttpClientParams.setRedirecting(httpclient.getParams(), false);
-		httpclient.setCredentialsProvider(new OnDemandCredentialsProvider(auth));
-		HttpHead httphead = new HttpHead(toUri(url));
-		
-        ResponseHeaders head = httpclient.execute(httphead, new ResponseHandler<ResponseHeaders>() {
-    		@Override
-    		public ResponseHeaders handleResponse(HttpResponse response)
-    				throws ClientProtocolException, IOException {
-    			return new HcResponseHeaders(response);
-    		}
-    	});
-        httpclient.getConnectionManager().shutdown();
-        return head;
+		try (CloseableHttpClient httpclient = HttpClientBuilder.create()
+				.setDefaultCredentialsProvider(new OnDemandCredentialsProvider(auth))
+				.setRedirectStrategy(new RedirectStrategy() {
+					@Override
+					public boolean isRedirected(HttpRequest httpRequest, HttpResponse httpResponse, HttpContext httpContext) {
+						return false;
+					}
+
+					@Override
+					public HttpUriRequest getRedirect(HttpRequest httpRequest, HttpResponse httpResponse, HttpContext httpContext) {
+						return null;
+					}
+				})
+				.build()) {
+			HttpHead httphead = new HttpHead(toUri(url));
+			return httpclient.execute(httphead, (ResponseHandler<ResponseHeaders>) HcResponseHeaders::new);
+		}
 	}
 	
 	private URI toUri(URL url) {
